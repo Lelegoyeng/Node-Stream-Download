@@ -1,13 +1,22 @@
 const axios = require('axios');
 const fs = require('fs');
-const url = 'https://media0.giphy.com/media/4SS0kfzRqfBf2/giphy.gif';
-const writer = fs.createWriteStream('image.gif');
+const path = require('path');
 
-axios({
-    method: 'get',
-    url,
-    responseType: 'stream'
-}).then((response) => {
+const data = [
+    { url: 'https://media0.giphy.com/media/4SS0kfzRqfBf2/giphy.gif' },
+    { url: 'https://media0.giphy.com/media/4SS0kfzRqfBf2/giphy.gif' },
+    { url: 'https://media0.giphy.com/media/4SS0kfzRqfBf2/giphy.gif' },
+];
+
+const downloadFile = async (url, filename) => {
+    const writer = fs.createWriteStream(filename);
+
+    const response = await axios({
+        url,
+        method: 'GET',
+        responseType: 'stream',
+    });
+
     const totalSize = parseInt(response.headers['content-length'], 10);
     let downloadedSize = 0;
 
@@ -20,12 +29,25 @@ axios({
     });
 
     response.data.pipe(writer);
-});
 
-writer.on('finish', () => {
-    console.log('\nFile downloaded successfully.');
-});
+    return new Promise((resolve, reject) => {
+        writer.on('finish', resolve);
+        writer.on('error', reject);
+    });
+};
 
-writer.on('error', (err) => {
-    console.error(err);
-});
+const loop = async () => {
+    for (let i = 0; i < data.length; i++) {
+        const result = data[i];
+        const filename = path.basename(result.url).split('.')[0] + i + '.gif';
+        try {
+            console.log(`Downloading ${result.url} to ${filename}`);
+            await downloadFile(result.url, filename);
+            console.log(`File downloaded successfully: ${filename}`);
+        } catch (error) {
+            console.error(`Error downloading ${result.url}:`, error.message);
+        }
+    }
+};
+
+loop();
