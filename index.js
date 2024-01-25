@@ -8,8 +8,10 @@ const data = [
     { url: 'https://media0.giphy.com/media/4SS0kfzRqfBf2/giphy.gif' },
 ];
 
+const downloadDirectory = path.join(__dirname, 'download'); // Jalur ke folder download
+
 const downloadFile = async (url, filename) => {
-    const writer = fs.createWriteStream(filename);
+    const writer = fs.createWriteStream(path.join(downloadDirectory, filename)); // Meng
 
     const response = await axios({
         url,
